@@ -8,3 +8,5 @@ Ejecutar en consola pip install -r requirements.txt
 4.Ejecutar main.py
 
 5.En la carpeta html5 abrir el documento test.html
+
+6. Documentacion de Endpoints disponible en http://127.0.0.1:8000/docs
