@@ -1,4 +1,5 @@
 1.Funciona con Python 3.8 en adelante
+Ejecutar en consola pip install -r requirements.txt
 
 2.Ejecutar script data.sql
 
