@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Formulario dinámico</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      form {
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        background-color: #fff;
+      }
+      label {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      input {
+        border: 1px solid #ccc;
+        padding: 10px;
+        width: 100%;
+      }
+      select {
+        border: 1px solid #ccc;
+        padding: 10px;
+        width: 100%;
+      }
+      button {
+        background-color: #000;
+        color: #fff;
+        font-size: 16px;
+        font-weight: bold;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="form">
+      <label for="nombre">Nombre:</label>
+      <input type="text" id="nombre" name="nombre">
+      <label for="apellido">Apellido:</label>
+      <input type="text" id="apellido" name="apellido">
+      <label for="fecha_nacimiento">Fecha de nacimiento:</label>
+      <input type="date" id="fecha_nacimiento" name="fecha_nacimiento">
+      <label for="sexo">Sexo:</label>
+      <select id="sexo" name="sexo">
+        <option value="">Selecciona una opción</option>
+        <option value="m">M</option>
+        <option value="f">F</option>
+        <option value="otro">Otro</option>
+      </select>
+      <label for="pais">País:</label>
+      <select id="pais" name="pais">
+        <option value="">Selecciona un país</option>
+      </select>
+      <label for="departamento">Departamento:</label>
+      <select id="departamento" name="departamento">
+        <option value="">Selecciona un departamento</option>
+      </select>
+      <label for="ciudad">Ciudad:</label>
+      <select id="ciudad" name="ciudad">
+        <option value="">Selecciona una ciudad</option>
+      </select>
+      <label for="casa">Casa/Apartamento:</label>
+      <input type="text" id="casa" name="casa">
+      <label for="trabajo">Departamento de trabajo:</label>
+      <input type="text" id="trabajo" name="trabajo">
+      <label for="email">Correo electrónico:</label>
+      <input type="email" id="email" name="email">
+      <label for="direccion">Dirección:</label>
+      <input type="text" id="direccion" name="direccion">
+      <button type="submit">Enviar</button>
+    </form>
+  </body>
+</html>
+
+
+    <script>
+      // Obtener referencia a los desplegables
+      const paisSelect = document.getElementById('pais');
+      const departamentoSelect = document.getElementById('departamento');
+      const ciudadSelect = document.getElementById('ciudad');
+    
+      // Obtener referencias a los campos de texto
+      const nombreInput = document.getElementById('nombre');
+      const apellidoInput = document.getElementById('apellido');
+      const casaApartamentoInput = document.getElementById('casa');
+      const departamentoTrabajoInput = document.getElementById('trabajo');
+      const fechaNacimientoInput = document.getElementById('fecha_nacimiento');
+      const sexoInput = document.getElementById('sexo');
+      const email= document.getElementById('email');
+      const direccion= document.getElementById('direccion');
+    
+      // Cargar opciones del primer desplegable al cargar la página
+      fetch('http://127.0.0.1:8000/contact/paises')
+        .then(response => response.json())
+        .then(paises => {
+          for (const pais of paises) {
+            const option = document.createElement('option');
+            option.value = pais.id;
+            option.text = pais.nombre;
+            paisSelect.appendChild(option);
+          }
+        });
+    
+      // Cargar opciones del segundo desplegable cuando se selecciona un país
+      paisSelect.addEventListener('change', () => {
+        const paisId = paisSelect.value;
+        departamentoSelect.innerHTML = '<option value="">Selecciona un departamento</option>';
+        ciudadSelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
+    
+        if (paisId) {
+          fetch(`http://127.0.0.1:8000/contact/pais-departamento/?country_id=${paisId}`)
+            .then(response => response.json())
+            .then(departamentos => {
+              for (const departamento of departamentos) {
+                const option = document.createElement('option');
+                option.value = departamento.id;
+                option.text = departamento.nombre;
+                departamentoSelect.appendChild(option);
+              }
+            });
+        }
+      });
+    
+      // Cargar opciones del tercer desplegable cuando se selecciona un departamento
+      departamentoSelect.addEventListener('change', () => {
+        const departamentoId = departamentoSelect.value;
+        ciudadSelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
+    
+        if (departamentoId) {
+          fetch(`http://127.0.0.1:8000/contact/departamento-ciudad/${departamentoId}`)
+            .then(response => response.json())
+            .then(ciudades => {
+              for (const ciudad of ciudades) {
+                const option = document.createElement('option');
+                option.value = ciudad.id;
+                option.text = ciudad.nombre;
+                ciudadSelect.appendChild(option);
+              }
+            });
+        }
+      });
+    
+      // Manejar el envío del formulario
+      const form = document.querySelector('#form');
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+    
+        const data = {
+          nombre: nombreInput.value,//yes
+          apellido: apellidoInput.value,//yes
+          casa_apartamento: casaApartamentoInput.value,//yes
+          departamento_trabajo: departamentoTrabajoInput.value,//yes
+          fecha_nacimiento: fechaNacimientoInput.value,//yes
+          sexo: sexoInput.value,//yes
+          direccion:direccion.value, //revisar
+          ciudad_id: ciudadSelect.value,
+          email: email.value
+        };
+    
+        console.log(data);
+        alert(JSON.stringify(data));
+
+        fetch('http://127.0.0.1:8000/contact/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+          alert(JSON.stringify(data));
+        })
+        .catch(error => {
+          console.error(error);
+          alert("Se presento un error al enviar el formulario", error);
+        });
+        });
+ 
+</script>
+    
